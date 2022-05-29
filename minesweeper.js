@@ -3,14 +3,26 @@ class Cell {
     constructor(bomb) {
         this.bombCount = 0;
         this.cleared = false;
+        this.flaged = false;
         this.bomb = bomb;
-        this.image = null;
     }
 
     press(x, y) {
         if (!this.cleared) {
             this.cleared = true;
+            clearedCells++;
+
+            if (this.bomb) {
+                gameOver = true;
+                console.log('Game Over')
+                return;
+            }
+
             checkNeighbours(x, y);
+
+            if (clearedCells + totalBombs == gridSize**2) {
+                console.log('You won')
+            }
 
             if (this.bombCount == 0) {
                 for (var i = y - 1; i <= y + 1; i++) {
@@ -25,13 +37,30 @@ class Cell {
     }
 }
 
+let gameOver = false;
+let bombImg = null;
+let flagImg = null;
+let totalBombs = 0;
+let clearedCells = 0;
 let cellSize = 40;
 let gridSize = 16;
 let width = cellSize * gridSize;
 let height = cellSize * gridSize;
 let grid = [];
 
+document.oncontextmenu = function(event) {
+    if (mouseX >= 0 && mouseX < cellSize * gridSize && mouseY >= 0 && mouseY < cellSize * gridSize) {
+        var x = Math.floor(mouseX / cellSize);
+        var y = Math.floor(mouseY / cellSize);
+        grid[x][y].flaged = grid[x][y].flaged ? false : true;
+    }
+    return false;
+}
+
+
 function setup() {
+    bombImg = loadImage('img/bomb.png');
+    flagImg = loadImage('img/flag.png')
     createCanvas(width, height);
     createGrid();
     textAlign(CENTER, CENTER);
@@ -47,7 +76,6 @@ function draw() {
             if (grid[j][i].cleared) {
                 if (grid[j][i].bomb) {
                     fill(255, 0, 0);
-                    gameOver();
                 } else {
                     fill(255);
                 }
@@ -55,8 +83,16 @@ function draw() {
                 fill(150);
             }
             rect(j * cellSize, i * cellSize, cellSize, cellSize)
-            fill(0);
 
+            if (grid[j][i].bomb && grid[j][i].cleared) {
+                image(bombImg, j * cellSize, i * cellSize ,cellSize, cellSize);
+            }
+
+            if (grid[j][i].flaged && !grid[j][i].cleared) {
+                image(flagImg, j * cellSize, i * cellSize ,cellSize, cellSize);
+            }
+
+            fill(0);
             if (grid[j][i].bombCount > 0 && grid[j][i].cleared) {
                 text(grid[j][i].bombCount, j * cellSize, i * cellSize, cellSize, cellSize);
             }
@@ -65,11 +101,18 @@ function draw() {
 }
 
 function mouseClicked(event) {
-    if (mouseX >= 0 && mouseX < cellSize * gridSize && mouseY >= 0 && mouseY < cellSize * gridSize) {
-        var x = Math.floor(mouseX / cellSize);
-        var y = Math.floor(mouseY / cellSize);
-        grid[x][y].press(x, y);
+    if(gameOver) {
+        return;
     }
+    if (mouseButton === LEFT) {
+        if (mouseX >= 0 && mouseX < cellSize * gridSize && mouseY >= 0 && mouseY < cellSize * gridSize) {
+            var x = Math.floor(mouseX / cellSize);
+            var y = Math.floor(mouseY / cellSize);
+            if (!grid[x][y].flaged) {
+                grid[x][y].press(x, y);
+            }
+        }
+    } 
 }
 
 function createGrid() {
@@ -80,6 +123,7 @@ function createGrid() {
                 row.push(new Cell(false));
             } else {
                 row.push(new Cell(true));
+                totalBombs++;
             }
 
         }
@@ -95,8 +139,4 @@ function checkNeighbours(x, y) {
             }
         }
     }
-}
-
-function gameOver() {
-
 }
