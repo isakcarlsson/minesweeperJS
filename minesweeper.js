@@ -14,14 +14,14 @@ class Cell {
 
             if (this.bomb) {
                 gameOver = true;
-                console.log('Game Over')
+                document.getElementById("head").innerHTML = "Game Over!";
                 return;
             }
 
             checkNeighbours(x, y);
 
-            if (clearedCells + totalBombs == gridSize**2) {
-                console.log('You won')
+            if (clearedCells + totalBombs == gridSize ** 2) {
+                document.getElementById("head").innerHTML = "You Won!";
             }
 
             if (this.bombCount == 0) {
@@ -47,8 +47,9 @@ let gridSize = 16;
 let width = cellSize * gridSize;
 let height = cellSize * gridSize;
 let grid = [];
+let color = [[0, 0, 255], [0, 150, 0], [255, 0, 0], [0,0,70], [130,0,0], [102, 51, 0], [100,100,100], [0,0,0]]
 
-document.oncontextmenu = function(event) {
+document.oncontextmenu = function (event) {
     if (mouseX >= 0 && mouseX < cellSize * gridSize && mouseY >= 0 && mouseY < cellSize * gridSize) {
         var x = Math.floor(mouseX / cellSize);
         var y = Math.floor(mouseY / cellSize);
@@ -59,6 +60,11 @@ document.oncontextmenu = function(event) {
 
 
 function setup() {
+    totalBombs = 0;
+    clearedCells = 0;
+    document.getElementById("head").innerHTML = "Minesweeper";
+    gameOver = false;
+    grid = [];
     bombImg = loadImage('img/bomb.png');
     flagImg = loadImage('img/flag.png')
     createCanvas(width, height);
@@ -85,15 +91,16 @@ function draw() {
             rect(j * cellSize, i * cellSize, cellSize, cellSize)
 
             if (grid[j][i].bomb && grid[j][i].cleared) {
-                image(bombImg, j * cellSize, i * cellSize ,cellSize, cellSize);
+                image(bombImg, j * cellSize, i * cellSize, cellSize, cellSize);
             }
 
             if (grid[j][i].flaged && !grid[j][i].cleared) {
-                image(flagImg, j * cellSize, i * cellSize ,cellSize, cellSize);
+                image(flagImg, j * cellSize, i * cellSize, cellSize, cellSize);
             }
 
-            fill(0);
             if (grid[j][i].bombCount > 0 && grid[j][i].cleared) {
+                var index = grid[j][i].bombCount - 1;
+                fill(color[index][0], color[index][1], color[index][2]);
                 text(grid[j][i].bombCount, j * cellSize, i * cellSize, cellSize, cellSize);
             }
         }
@@ -101,7 +108,7 @@ function draw() {
 }
 
 function mouseClicked(event) {
-    if(gameOver) {
+    if (gameOver) {
         return;
     }
     if (mouseButton === LEFT) {
@@ -112,14 +119,14 @@ function mouseClicked(event) {
                 grid[x][y].press(x, y);
             }
         }
-    } 
+    }
 }
 
 function createGrid() {
     for (var i = 0; i < gridSize; i++) {
         var row = [];
         for (var j = 0; j < gridSize; j++) {
-            if (Math.random() > 0.14) {
+            if (Math.random() > 0.04) {
                 row.push(new Cell(false));
             } else {
                 row.push(new Cell(true));
